@@ -1,0 +1,27 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "invenio-application-image-stream"
+    creationTimestamp: null
+    annotations:
+      description: "Invenio OpenShift template for shared image streams."
+      tags: "invenio-application-image-stream"
+  labels:
+    template: "invenio-application-image-stream"
+  objects:
+    # Target image for the application build
+    -
+      kind: "ImageStream"
+      apiVersion: "v1"
+      metadata:
+        name: "${APPLICATION_IMAGE_NAME}"
+      spec:
+        tags:
+        - name: "dev"
+        - name: "qa"
+        - name: "prod"
+  parameters:
+    - name: APPLICATION_IMAGE_NAME
+      description: Shared image stream name.
+      required: true

@@ -1,0 +1,44 @@
+### Template to build the Dockerfile available at the root of the repository and to publish the built image
+### to the `group` GitLab registry
+###
+### The build can be initiated only by a `trigger` call.
+### Documentation: https://docs.gitlab.com/ee/ci/triggers/
+###
+stages:
+  - build_application_docker_image
+  - import_image_to_openshift
+  - deploy
+
+build_application_docker_image:
+  only:
+    - triggers
+  stage: build_application_docker_image
+  tags:
+    - docker-image-build
+  script: echo 'Building ${CI_REGISTRY}/${APPLICATION_IMAGE_NAME}:${VERSION} Docker image ...'
+  variables:
+    TO: ${CI_REGISTRY}/${APPLICATION_IMAGE_NAME}:${VERSION} # where to push the built image
+    # ARGs passed to the Docker image when build triggered
+    BUILD_ARG_CACHE_DATE: "CACHE_DATE=${CACHE_DATE}"
+    BUILD_ARG_BRANCH_NAME: "BRANCH_NAME=${BRANCH_NAME}"
+    BUILD_ARG_COMMIT_ID: "COMMIT_ID=${COMMIT_ID}"
+    BUILD_ARG_TAG_NAME: "TAG_NAME=${TAG_NAME}"
+    BUILD_ARG_PR_ID: "PR_ID=${PR_ID}"
+
+import_image_to_openshift:
+  only:
+    - triggers
+  stage: import_image_to_openshift
+  image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
+  script:
+    - oc tag -n ${OPENSHIFT_PROJECT_TAGS_NAME} --token ${OPENSHIFT_PROJECT_TAGS_TOKEN} --source=docker ${CI_REGISTRY_IMAGE}/${APPLICATION_IMAGE_NAME}:${VERSION} ${APPLICATION_IMAGE_NAME}:${VERSION}
+
+deploy:
+  only:
+    - triggers
+  stage: deploy
+  image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
+  script:
+    - if [ -z ${DEPLOY}]; exit 1; else echo 'Starting deployment...';
+    - if [ ${DEPLOY} = 'dev' ]; then export OPENSHIFT_PROJECT_TOKEN=${OPENSHIFT_PROJECT_DEV_TOKEN}; elif [ ${DEPLOY} = 'qa' ]; then export OPENSHIFT_PROJECT_TOKEN=${OPENSHIFT_PROJECT_QA_TOKEN}; elif [ ${DEPLOY} = 'prod' ]; then echo 'Skipping, no automatic deployment on prod environment.'; exit 1; else echo 'Skipping, no environment selected'; exit 1; fi;
+    - ./scripts/deploy.sh $DEPLOY $VERSION --yes-i-know
