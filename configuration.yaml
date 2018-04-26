@@ -56,9 +56,9 @@
         INVENIO_COLLECT_STORAGE: flask_collect.storage.file
         # Celery
         INVENIO_CELERY_RESULT_BACKEND: 'redis://cache:6379/2'
-        # Elasticsearch config for https://es-instance.cern.ch/es
-        ELASTICSEARCH_HOST: es-instance.cern.ch
-        ELASTICSEARCH_URL_PREFIX: es
+        # Elasticsearch
+        ELASTICSEARCH_HOST: slintdev.cern.ch
+        ELASTICSEARCH_USER: zenodobroker
         ELASTICSEARCH_PORT: '443'
         ELASTICSEARCH_USE_SSL: 'true'
         ELASTICSEARCH_VERIFY_CERTS: 'false'

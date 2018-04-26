@@ -2,8 +2,8 @@
 FROM gitlab-registry.cern.ch/invenio/base:python3
 
 # uWSGI configuration to be changed
-ARG UWSGI_WSGI_MODULE=<changeme-with-invenio-app-name>.wsgi:application
-ENV UWSGI_WSGI_MODULE ${UWSGI_WSGI_MODULE:-<changeme-with-invenio-app-name>.wsgi:application}
+ARG UWSGI_WSGI_MODULE=invenio_app.wsgi:application
+ENV UWSGI_WSGI_MODULE ${UWSGI_WSGI_MODULE:-invenio_app.wsgi:application}
 ARG UWSGI_PORT=5000
 ENV UWSGI_PORT ${UWSGI_PORT:-5000}
 ARG UWSGI_PROCESSES=2
@@ -20,7 +20,7 @@ ENV WORKING_DIR=/opt/invenio
 ARG CACHE_DATE=not_a_date
 
 # get the code at a specific commit
-RUN git clone <changeme.git> $WORKING_DIR/src
+RUN git clone https://github.com/asclepias/asclepias-broker.git $WORKING_DIR/src
 WORKDIR $WORKING_DIR/src
 
 # check if one of the argument is passed to checkout the repo on a specific commit, otherwise use the latest

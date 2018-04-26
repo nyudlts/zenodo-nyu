@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 OPENSHIFT_SERVER=${OPENSHIFT_SERVER:-'https://openshift.cern.ch/'}
-APPLICATION_IMAGE_NAME='<changeme>'
+APPLICATION_IMAGE_NAME='asclepias'
 
 # check if the script is called from an OpenShift logged in console
 oc whoami > /dev/null 2>&1
@@ -29,15 +29,15 @@ input_enviroment=$1
 case "$input_enviroment" in
     dev)
         ENVIRONMENT=dev
-        OPENSHIFT_PROJECT_NAME='<changeme-with-OpenShift-dev-project>'
+        OPENSHIFT_PROJECT_NAME='zenodo-broker-dev'
         ;;
     qa)
         ENVIRONMENT=qa
-        OPENSHIFT_PROJECT_NAME='<changeme-with-OpenShift-qa-project>'
+        OPENSHIFT_PROJECT_NAME='zenodo-broker-qa'
         ;;
     prod)
         ENVIRONMENT=prod
-        OPENSHIFT_PROJECT_NAME='<changeme-with-OpenShift-prod-project>'
+        OPENSHIFT_PROJECT_NAME='zenodo-broker'
         ;;
     *)
         echo 'Environment should be [dev|qa|prod].'

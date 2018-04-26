@@ -238,7 +238,7 @@ Note that, since the image has not been built yet, the application will not be d
 
 ```console
 $ oc process -f application.yaml \
-  --param APPLICATION_IMAGE_NAME='zenodobrokerimage' \
+  --param APPLICATION_IMAGE_NAME='asclepias' \
   --param APPLICATION_IMAGE_TAG='dev' \
   --param TAGS_PROJECT='zenodo-broker-tags' | oc create -f -
 ```
