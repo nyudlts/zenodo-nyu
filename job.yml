@@ -1,0 +1,76 @@
+---
+kind: "Template"
+apiVersion: "v1"
+metadata:
+  name: "parametrized-job"
+  creationTimestamp: null
+  annotations:
+    description: "Invenio job OpenShift template."
+    tags: "invenio-job"
+labels:
+  template: "invenio-job"
+objects:
+  -
+    apiVersion: batch/v1
+    kind: Job
+    metadata:
+      name: "${JOB_NAME}"
+    spec:
+      parallelism: 1
+      completions: 1
+      activeDeadlineSeconds: 14400
+      template:
+        metadata:
+          name: invenio-job
+          labels:
+            app: invenio-job
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: invenio-job
+              image: 'docker-registry.default.svc:5000/test-zenodo-broker/asclepias:latest'
+              command:
+                - '${JOB_COMMAND}'
+              resources:
+                requests:
+                  cpu: 1
+                  memory: 2Mi
+                limits:
+                  cpu: 2
+                  memory: 4Gi
+              envFrom:
+                - configMapRef:
+                    name: invenio-config
+              env:
+                - name: TZ
+                  value: "Europe/Zurich"
+                - name: INVENIO_BROKER_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: mq-password
+                      key: CELERY_BROKER_URL
+                - name: INVENIO_CELERY_BROKER_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: mq-password
+                      key: CELERY_BROKER_URL
+                - name: INVENIO_SQLALCHEMY_DATABASE_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-password
+                      key: SQLALCHEMY_DB_URI
+                - name: ELASTICSEARCH_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: elasticsearch-password
+                      key: ELASTICSEARCH_PASSWORD
+parameters:
+  - name: APPLICATION_DOCKER_IMAGE
+    required: true
+  - name: APPLICATION_DOCKER_TAG
+    value: latest
+    required: true
+  - name: JOB_NAME
+    required: true
+  - name: JOB_COMMAND
+    required: true
