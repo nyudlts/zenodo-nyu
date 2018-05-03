@@ -18,7 +18,6 @@
         name: "${APPLICATION_IMAGE_NAME}"
       spec:
         tags:
-        - name: "dev"
         - name: "qa"
         - name: "prod"
   parameters:

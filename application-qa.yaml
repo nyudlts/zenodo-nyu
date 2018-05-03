@@ -229,7 +229,7 @@
     - name: APPLICATION_IMAGE_NAME
       required: true
     - name: APPLICATION_IMAGE_TAG
-      value: "dev"
+      value: "qa"
       required: true
     - name: PROXY_REPLICAS
       description: Number of proxy instances

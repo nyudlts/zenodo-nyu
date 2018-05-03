@@ -1,6 +1,8 @@
 # list of available base images here: https://gitlab.cern.ch/invenio/base
 FROM gitlab-registry.cern.ch/invenio/base:python3
 
+ENV SOURCE_REPOSITORY=https://github.com/asclepias/asclepias-broker.git
+
 # uWSGI configuration to be changed
 ARG UWSGI_WSGI_MODULE=invenio_app.wsgi:application
 ENV UWSGI_WSGI_MODULE ${UWSGI_WSGI_MODULE:-invenio_app.wsgi:application}
@@ -20,7 +22,7 @@ ENV WORKING_DIR=/opt/invenio
 ARG CACHE_DATE=not_a_date
 
 # get the code at a specific commit
-RUN git clone https://github.com/asclepias/asclepias-broker.git $WORKING_DIR/src
+RUN git clone $SOURCE_REPOSITORY $WORKING_DIR/src
 WORKDIR $WORKING_DIR/src
 
 # check if one of the argument is passed to checkout the repo on a specific commit, otherwise use the latest
@@ -46,6 +48,10 @@ RUN if [ ! -z $BRANCH_NAME ]; then \
         git fetch origin pull/$PR_ID/head:$PR_ID && \
         git checkout $PR_ID; \
     fi
+
+# Set the source location
+# NOTE: Assumes GitHub repositories. Doesn't work for PRs
+LABEL io.openshift.build.source-location=${SOURCE_REPOSITORY}/tree/${BRANCH_NAME:-${COMMIT_ID:-${TAG_NAME:-master}}}
 
 # print current commit id
 RUN echo "Current commit id:" && git rev-parse HEAD
