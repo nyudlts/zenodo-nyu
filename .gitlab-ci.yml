@@ -20,9 +20,9 @@ build_application_docker_image:
   stage: build_application_docker_image
   tags:
     - docker-image-build
-  script: echo 'Building ${CI_REGISTRY}/${APPLICATION_IMAGE_NAME}:${VERSION} Docker image ...'
+  script: echo 'Building ${CI_REGISTRY_IMAGE}/${APPLICATION_IMAGE_NAME}:${VERSION} Docker image ...'
   variables:
-    TO: ${CI_REGISTRY}/${APPLICATION_IMAGE_NAME}:${VERSION} # where to push the built image
+    TO: ${CI_REGISTRY_IMAGE}/${APPLICATION_IMAGE_NAME}:${VERSION} # where to push the built image
     # ARGs passed to the Docker image when build triggered
     BUILD_ARG_CACHE_DATE: "CACHE_DATE=${CACHE_DATE}"
     BUILD_ARG_BRANCH_NAME: "BRANCH_NAME=${BRANCH_NAME}"
