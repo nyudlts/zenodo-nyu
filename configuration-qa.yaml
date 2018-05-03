@@ -1,0 +1,64 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "invenio-configuration"
+    creationTimestamp: null
+    annotations:
+      description: "Invenio application configuration OpenShift template."
+      tags: "invenio-configuration"
+  labels:
+    template: "invenio-application"
+  objects:
+    -
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nginx-config
+      data:
+        invenio.conf: |
+          upstream web {
+              server web:5000 max_conns=20;
+          }
+
+          server {
+
+              listen 8080;
+              server_name localhost;
+              charset utf-8;
+
+              location /ping {
+                  access_log off;
+                  return 200 "ok\n";
+              }
+
+              location / {
+                  include uwsgi_params;
+                  uwsgi_pass web;
+                  uwsgi_param X-Real-IP $remote_addr;
+                  uwsgi_param Host $host;
+                  uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+                  uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
+                  uwsgi_ignore_headers Set-Cookie;
+              }
+          }
+    -
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: invenio-config
+      data:
+        # Redis
+        INVENIO_CACHE_REDIS_HOST: 'cache'
+        INVENIO_CACHE_REDIS_URL: 'redis://cache:6379/0'
+        INVENIO_ACCOUNTS_SESSION_REDIS_URL: 'redis://cache:6379/1'
+        INVENIO_RATELIMIT_STORAGE_URL: 'redis://cache:6379/3'
+        INVENIO_COLLECT_STORAGE: flask_collect.storage.file
+        # Celery
+        INVENIO_CELERY_RESULT_BACKEND: 'redis://cache:6379/2'
+        # Elasticsearch
+        ELASTICSEARCH_HOST: zenodo-broker-qa-search.cern.ch
+        ELASTICSEARCH_USER: broker
+        ELASTICSEARCH_PORT: '443'
+        ELASTICSEARCH_USE_SSL: 'true'
+        ELASTICSEARCH_VERIFY_CERTS: 'false'

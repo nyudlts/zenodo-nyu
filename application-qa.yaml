@@ -1,0 +1,252 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "invenio-application"
+    creationTimestamp: null
+    annotations:
+      description: "Invenio application OpenShift template."
+      tags: "invenio-application"
+  labels:
+    template: "invenio-application"
+  objects:
+    -
+      apiVersion: v1
+      kind: Route
+      metadata:
+        name: invenio
+      spec:
+        to:
+          kind: Service
+          name: proxy
+        port:
+          targetPort: http
+        selector:
+          app: proxy
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: proxy
+        labels:
+          app: proxy
+      spec:
+        ports:
+        - name: 'http'
+          port: 80
+          targetPort: 8080
+        selector:
+          app: proxy
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: proxy
+      spec:
+        replicas: "${PROXY_REPLICAS}"
+        template:
+          metadata:
+            name: proxy
+            labels:
+              app: proxy
+          spec:
+            containers:
+            - name: proxy
+              image: nginx
+              env:
+              - name: TZ
+                value: "Europe/Zurich"
+              ports:
+              - containerPort: 8080
+                protocol: TCP
+              volumeMounts:
+                - name: nginx-config
+                  mountPath: /etc/nginx/conf.d
+                - name: var-run
+                  mountPath: /var/run
+                - name: var-cache-nginx
+                  mountPath: /var/cache/nginx
+                - name: var-log-nginx
+                  mountPath: /var/log/nginx
+                - name: static
+                  mountPath: /static
+              readinessProbe:
+                httpGet:
+                  path: /ping
+                  port: 8080
+                initialDelaySeconds: 15
+                timeoutSeconds: 1
+            volumes:
+              - name: nginx-config
+                configMap:
+                  name: nginx-config
+              - name: var-run
+                emptyDir: {}
+              - name: var-cache-nginx
+                emptyDir: {}
+              - name: var-log-nginx
+                emptyDir: {}
+              - name: static
+                emptyDir: {}
+
+
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: web
+        labels:
+          run: web
+      spec:
+        ports:
+        - port: 5000
+          protocol: TCP
+        selector:
+          app: web
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: web
+      spec:
+        replicas: "${WEB_REPLICAS}"
+        template:
+          metadata:
+            labels:
+              app: web
+          spec:
+            containers:
+            - name: web
+              ports:
+              - containerPort: 5000
+                name: http
+              envFrom:
+                - configMapRef:
+                   name: invenio-config
+              env:
+                - name: TZ
+                  value: "Europe/Zurich"
+                - name: INVENIO_BROKER_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: mq-password
+                      key: CELERY_BROKER_URL
+                - name: INVENIO_CELERY_BROKER_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: mq-password
+                      key: CELERY_BROKER_URL
+                - name: INVENIO_SQLALCHEMY_DATABASE_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-password
+                      key: SQLALCHEMY_DB_URI
+                - name: ELASTICSEARCH_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: elasticsearch-password
+                      key: ELASTICSEARCH_PASSWORD
+              readinessProbe:
+                exec:
+                  command:
+                    - sh
+                    - -c
+                    - "uwsgi_curl $(hostname):5000 /ping"
+                initialDelaySeconds: 15
+                timeoutSeconds: 1
+        triggers:
+          - type: ImageChange
+            imageChangeParams:
+              automatic: false
+              containerNames:
+                - web
+              from:
+                kind: ImageStreamTag
+                name: '${APPLICATION_IMAGE_NAME}:${APPLICATION_IMAGE_TAG}'
+                namespace: "${TAGS_PROJECT}"
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: worker
+      spec:
+        replicas: "${WORKER_REPLICAS}"
+        template:
+          metadata:
+            labels:
+              app: worker
+          spec:
+            containers:
+            - name: worker
+              command: [
+                "celery", "worker", "-A", "${WORKER_APP}", "-l", "INFO"
+              ]
+              envFrom:
+                - configMapRef:
+                   name: invenio-config
+              env:
+                - name: TZ
+                  value: "Europe/Zurich"
+                - name: INVENIO_BROKER_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: mq-password
+                      key: CELERY_BROKER_URL
+                - name: INVENIO_CELERY_BROKER_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: mq-password
+                      key: CELERY_BROKER_URL
+                - name: INVENIO_SQLALCHEMY_DATABASE_URI
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-password
+                      key: SQLALCHEMY_DB_URI
+                - name: ELASTICSEARCH_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: elasticsearch-password
+                      key: ELASTICSEARCH_PASSWORD
+              readinessProbe:
+                exec:
+                  command: [
+                    "celery", "inspect", "ping", "-A", "${WORKER_APP}"
+                  ]
+                initialDelaySeconds: 15
+                timeoutSeconds: 1
+        triggers:
+          - type: ImageChange
+            imageChangeParams:
+              automatic: false
+              containerNames:
+                - worker
+              from:
+                kind: ImageStreamTag
+                name: '${APPLICATION_IMAGE_NAME}:${APPLICATION_IMAGE_TAG}'
+                namespace: "${TAGS_PROJECT}"
+
+  parameters:
+    - name: APPLICATION_IMAGE_NAME
+      required: true
+    - name: APPLICATION_IMAGE_TAG
+      value: "dev"
+      required: true
+    - name: PROXY_REPLICAS
+      description: Number of proxy instances
+      value: "1"
+      required: true
+    - name: WEB_REPLICAS
+      description: Number of web instances
+      value: "2"
+      required: true
+    - name: WORKER_APP
+      description: Invenio Celery worker application.
+      value: "invenio_app.celery"
+      required: true
+    - name: WORKER_REPLICAS
+      description: Number of worker instances
+      value: "1"
+      required: true
+    - name: TAGS_PROJECT
+      description: OpenShift project which contains all image versions.
+      required: true

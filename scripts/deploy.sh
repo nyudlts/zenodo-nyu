@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 OPENSHIFT_SERVER=${OPENSHIFT_SERVER:-'https://openshift.cern.ch/'}
-APPLICATION_IMAGE_NAME='asclepias'
+APPLICATION_IMAGE_NAME='zenodobrokerimage'
 
 # check if the script is called from an OpenShift logged in console
 oc whoami > /dev/null 2>&1

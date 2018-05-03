@@ -1,0 +1,111 @@
+---
+  kind: "Template"
+  apiVersion: "v1"
+  metadata:
+    name: "invenio-services"
+    creationTimestamp: null
+    annotations:
+      description: "Invenio services OpenShift template."
+      tags: "invenio-services"
+  labels:
+    template: "invenio-services"
+  objects:
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: cache
+        labels:
+          run: cache
+      spec:
+        ports:
+        - port: 6379
+          protocol: TCP
+        selector:
+          app: cache
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: cache
+      spec:
+        replicas: 1
+        template:
+          metadata:
+            labels:
+              app: cache
+          spec:
+            containers:
+            - name: cache
+              image: redis
+              env:
+              - name: TZ
+                value: "Europe/Zurich"
+              ports:
+              - containerPort: 5432
+                name: tcp
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+              readinessProbe:
+                exec:
+                  command:
+                  - sh
+                  - -c
+                  - "redis-cli -h $(hostname) ping"
+                initialDelaySeconds: 15
+                timeoutSeconds: 5
+            volumes:
+              - name: data
+                emptyDir: {}
+    -
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: mq
+        labels:
+          run: mq
+      spec:
+        ports:
+        - name: tcp
+          port: 4369
+          protocol: TCP
+        - name: management
+          port: 5672
+          protocol: TCP
+        selector:
+          app: mq
+    -
+      apiVersion: v1
+      kind: DeploymentConfig
+      metadata:
+        name: mq
+      spec:
+        replicas: 1
+        template:
+          metadata:
+            labels:
+              app: mq
+          spec:
+            containers:
+            - name: mq
+              image: rabbitmq:3-management
+              ports:
+              - containerPort: 4369
+              - containerPort: 5672
+              env:
+              - name: TZ
+                value: "Europe/Zurich"
+              - name: RABBITMQ_DEFAULT_PASS
+                valueFrom:
+                  secretKeyRef:
+                    name: mq-password
+                    key: RABBITMQ_DEFAULT_PASS
+              readinessProbe:
+                exec:
+                  command:
+                  - sh
+                  - -c
+                  - "rabbitmqctl status"
+                initialDelaySeconds: 15
+                timeoutSeconds: 5

@@ -28,7 +28,7 @@ objects:
           restartPolicy: Never
           containers:
             - name: invenio-job
-              image: 'docker-registry.default.svc:5000/test-zenodo-broker/asclepias:latest'
+              image: '${APPLICATION_DOCKER_IMAGE}:${APPLICATION_DOCKER_TAG}'
               command:
                 - '${JOB_COMMAND}'
               resources:
@@ -66,6 +66,7 @@ objects:
                       key: ELASTICSEARCH_PASSWORD
 parameters:
   - name: APPLICATION_DOCKER_IMAGE
+    value: "docker-registry.default.svc:5000/zenodo-broker-tags/zenodobrokerimage"
     required: true
   - name: APPLICATION_DOCKER_TAG
     value: latest

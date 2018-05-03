@@ -4,10 +4,9 @@ GITLAB_BRANCH=master
 # URL to trigger the build of the Docker image
 # Set the project id: you can find your trigger URL under "Pipeline Triggers" at Settings/CI-CD
 # https://gitlab.cern.ch/<your-group>/<your-repo>/settings/ci_cd
-GITLAB_PIPELINE_TRIGGER_URL="https://gitlab.cern.ch/api/v4/projects/<changeme-project-id>/trigger/pipeline"
-APPLICATION_IMAGE_NAME='<changeme>'
-ENVIRONMENTS='dev
-qa'
+GITLAB_PIPELINE_TRIGGER_URL="https://gitlab.cern.ch/api/v4/projects/39370/trigger/pipeline"
+APPLICATION_IMAGE_NAME='zenodobrokerimage'
+ENVIRONMENTS='qa'
 # prod environment is not included since deployment is always going to be
 # manual.
 
@@ -76,7 +75,7 @@ fi
 if ! [ -z "$deploy" ]
 then
     if echo "$ENVIRONMENTS" | grep -qE "^$environment$"
-    then 
+    then
         deploy_argument="-F variables[DEPLOY]=$environment"
     else
         echo -e "The provided environement ($environment) does not match the available environments:\n$ENVIRONMENTS"

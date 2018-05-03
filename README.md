@@ -6,7 +6,7 @@ As recommended by OpenShift service, GitLab will be used to trigger builds of Do
 GitLab Registry.
 
 For the sake of clarity of this documentation, examples will be given referring to:
- * `zenodogroup`, for the GitLab group
+ * `zenodo`, for the GitLab group
  * `zenodo-broker-openshift`, for the GitLab project
  * `zenodoorg`, for the GitHub (or similar) organization
  * `zenodo-broker` for the GitHub repository containing the app source code
@@ -125,12 +125,12 @@ If you want to restrict this sharing to your projects only, refer to the [offici
 
 ### Fork this template
 
-First of all, ensure to have access (or create) to your `zenodogroup` GitLab group. Then:
+First of all, ensure to have access (or create) to your `zenodo` GitLab group. Then:
 
   1. Fork this repo to your group. From now on, you will work in your fork.
   2. Change the name and the url of your forked repo. In your repo GitLab page, go to `Settings` -> `General` ->
   `Advanced Settings` -> click on `Expand` button and edit `Project name` and `Path` in the `Rename repository` section.
-  From now on, we will call it `zenodo-broker-openshift` (https://gitlab.cern.ch/zenodogroup/zenodo-broker-openshift.git).
+  From now on, we will call it `zenodo-broker-openshift` (https://gitlab.cern.ch/zenodo/zenodo-broker-openshift.git).
   3. Add a new secrets. In your repo GitLab page, go to `Settings` -> `CI / CD` -> `Secret variables` -> click on
   `Expand` button:
     * `OPENSHIFT_PROJECT_TAGS_NAME`: insert `zenodo-broker-tags`.
@@ -143,7 +143,7 @@ First of all, ensure to have access (or create) to your `zenodogroup` GitLab gro
 
 ### First configuration
 
-Clone this GitLab repository `https://gitlab.cern.ch/zenodogroup/zenodo-broker-openshift.git` locally to your machine.
+Clone this GitLab repository `https://gitlab.cern.ch/zenodo/zenodo-broker-openshift.git` locally to your machine.
 Values to be changed are tagged by the keyword `changeme` to easily find them. In details:
   * ./Dockerfile:
     * edit the `FROM` if needed. If, for example, you need to use `XRootD`, there is already an available image for that.
@@ -238,8 +238,8 @@ Note that, since the image has not been built yet, the application will not be d
 
 ```console
 $ oc process -f application.yaml \
-  --param APPLICATION_IMAGE_NAME='asclepias' \
-  --param APPLICATION_IMAGE_TAG='dev' \
+  --param APPLICATION_IMAGE_NAME='zenodobrokerimage' \
+  --param APPLICATION_IMAGE_TAG='qa' \
   --param TAGS_PROJECT='zenodo-broker-tags' | oc create -f -
 ```
 
@@ -273,7 +273,7 @@ $ build.sh -t v1.0.3
 This step will trigger a GitLab-CI pipeline which will:
 
   1. build the Invenio Docker file image. It clones the tag `v1.0.3` of https://github.com/zenodo/zenodo-broker.git
-  2. push the built image to the GitLab registry: https://gitlab-registry.cern.ch/zenodogroup/zenodo-broker-openshift/zenodobrokerimage:v1.0.3
+  2. push the built image to the GitLab registry: https://gitlab-registry.cern.ch/zenodo/zenodo-broker-openshift/zenodobrokerimage:v1.0.3
   3. import the new built image metadata to the `zenodo-broker-tags` OpenShift project. With this step, the image will
      be available to all `zenodo-broker-*` OpenShift projects and it will be ready to be deployed.
 

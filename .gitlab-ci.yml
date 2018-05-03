@@ -47,8 +47,7 @@ deploy:
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   script:
     - if [ -z ${DEPLOY}]; exit 1; else echo 'Starting deployment...';
-    - if [ ${DEPLOY} = 'dev' ]; then export OPENSHIFT_PROJECT_TOKEN=${TOKEN_DEV}; elif [ ${DEPLOY} = 'qa' ]; then export OPENSHIFT_PROJECT_TOKEN=${TOKEN_QA}; elif [ ${DEPLOY} = 'prod' ]; then echo 'Skipping, no automatic deployment on prod environment.'; exit 1; else echo 'Skipping, no environment selected'; exit 1; fi;
+    - if [ ${DEPLOY} = 'qa' ]; then export OPENSHIFT_PROJECT_TOKEN=${TOKEN_QA}; elif [ ${DEPLOY} = 'prod' ]; then echo 'Skipping, no automatic deployment on prod environment.'; exit 1; else echo 'Skipping, no environment selected'; exit 1; fi;
     - ./scripts/deploy.sh $DEPLOY $VERSION --yes-i-know
   variables:
-    TOKEN_DEV: ${OPENSHIFT_PROJECT_DEV_TOKEN}
     TOKEN_QA: ${OPENSHIFT_PROJECT_QA_TOKEN}
