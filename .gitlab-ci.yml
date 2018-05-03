@@ -4,6 +4,11 @@
 ### The build can be initiated only by a `trigger` call.
 ### Documentation: https://docs.gitlab.com/ee/ci/triggers/
 ###
+variables:
+  # the OpenShift server url is hardcoded. If you need to have it as parameter,
+  # change the build.sh script and add a new param to the cURL request
+  OPENSHIFT_SERVER: https://openshift.cern.ch
+
 stages:
   - build_application_docker_image
   - import_image_to_openshift
@@ -31,7 +36,9 @@ import_image_to_openshift:
   stage: import_image_to_openshift
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   script:
-    - oc tag -n ${OPENSHIFT_PROJECT_TAGS_NAME} --token ${OPENSHIFT_PROJECT_TAGS_TOKEN} --source=docker ${CI_REGISTRY_IMAGE}/${APPLICATION_IMAGE_NAME}:${VERSION} ${APPLICATION_IMAGE_NAME}:${VERSION}
+    - oc tag --source=docker ${CI_REGISTRY_IMAGE}/${APPLICATION_IMAGE_NAME}:${VERSION} ${APPLICATION_IMAGE_NAME}:${VERSION} --token ${TOKEN} --server=${OPENSHIFT_SERVER} -n ${OPENSHIFT_PROJECT_TAGS_NAME}
+  variables:
+    TOKEN: ${OPENSHIFT_PROJECT_TAGS_TOKEN}
 
 deploy:
   only:
@@ -40,5 +47,8 @@ deploy:
   image: gitlab-registry.cern.ch/paas-tools/openshift-client:latest
   script:
     - if [ -z ${DEPLOY}]; exit 1; else echo 'Starting deployment...';
-    - if [ ${DEPLOY} = 'dev' ]; then export OPENSHIFT_PROJECT_TOKEN=${OPENSHIFT_PROJECT_DEV_TOKEN}; elif [ ${DEPLOY} = 'qa' ]; then export OPENSHIFT_PROJECT_TOKEN=${OPENSHIFT_PROJECT_QA_TOKEN}; elif [ ${DEPLOY} = 'prod' ]; then echo 'Skipping, no automatic deployment on prod environment.'; exit 1; else echo 'Skipping, no environment selected'; exit 1; fi;
+    - if [ ${DEPLOY} = 'dev' ]; then export OPENSHIFT_PROJECT_TOKEN=${TOKEN_DEV}; elif [ ${DEPLOY} = 'qa' ]; then export OPENSHIFT_PROJECT_TOKEN=${TOKEN_QA}; elif [ ${DEPLOY} = 'prod' ]; then echo 'Skipping, no automatic deployment on prod environment.'; exit 1; else echo 'Skipping, no environment selected'; exit 1; fi;
     - ./scripts/deploy.sh $DEPLOY $VERSION --yes-i-know
+  variables:
+    TOKEN_DEV: ${OPENSHIFT_PROJECT_DEV_TOKEN}
+    TOKEN_QA: ${OPENSHIFT_PROJECT_QA_TOKEN}
