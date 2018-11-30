@@ -9,7 +9,7 @@ logged_in_with_oc="$?"
 
 if [ -z "$OPENSHIFT_PROJECT_TOKEN" ]
 then
-    if [ logged_in_with_oc -ne 0 ]
+    if [ $logged_in_with_oc -ne 0 ]
     then
         echo 'Warning! You should login with oc client or provide a token.'
         echo 'See: oc https://openshift.cern.ch/console/command-line'
@@ -27,10 +27,6 @@ usage() { echo "Usage: $0 <enviroment> <version-tag> [--yes-i-know]" 1>&2; exit 
 # defines mappings to have short aliases (`dev`, `qa`, `prod`) for OpenShift project names
 input_enviroment=$1
 case "$input_enviroment" in
-    dev)
-        ENVIRONMENT=dev
-        OPENSHIFT_PROJECT_NAME='zenodo-broker-dev'
-        ;;
     qa)
         ENVIRONMENT=qa
         OPENSHIFT_PROJECT_NAME='zenodo-broker-qa'
@@ -40,7 +36,7 @@ case "$input_enviroment" in
         OPENSHIFT_PROJECT_NAME='zenodo-broker'
         ;;
     *)
-        echo 'Environment should be [dev|qa|prod].'
+        echo 'Environment should be [qa|prod].'
         usage
         ;;
 esac
