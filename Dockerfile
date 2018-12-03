@@ -1,5 +1,9 @@
+
+FROM inveniosoftware/centos7-python:3.6
+
+# TODO: Check if we don't need this image anymore...
 # list of available base images here: https://gitlab.cern.ch/invenio/base
-FROM gitlab-registry.cern.ch/invenio/base:python3
+# FROM gitlab-registry.cern.ch/invenio/base:python3
 
 ENV SOURCE_REPOSITORY=https://github.com/asclepias/asclepias-broker.git
 
@@ -21,11 +25,11 @@ ENV WORKING_DIR=/opt/invenio
 # is always the same so it caches it.
 ARG CACHE_DATE=not_a_date
 
-# get the code at a specific commit
+# Get the code at a specific commit
 RUN git clone $SOURCE_REPOSITORY $WORKING_DIR/src
 WORKDIR $WORKING_DIR/src
 
-# check if one of the argument is passed to checkout the repo on a specific commit, otherwise use the latest
+# Check if one of the argument is passed to checkout the repo on a specific commit, otherwise use the latest
 ARG BRANCH_NAME
 ARG COMMIT_ID
 ARG TAG_NAME
@@ -49,32 +53,20 @@ RUN if [ ! -z $BRANCH_NAME ]; then \
         git checkout $PR_ID; \
     fi
 
-# Set the source location
-# NOTE: Assumes GitHub repositories. Doesn't work for PRs
-LABEL io.openshift.build.source-location=${SOURCE_REPOSITORY}/tree/${BRANCH_NAME:-${COMMIT_ID:-${TAG_NAME:-master}}}
-
-# print current commit id
+# Print current commit id
 RUN echo "Current commit id:" && git rev-parse HEAD
 
 ENV INVENIO_INSTANCE_PATH=$WORKING_DIR/var/instance
 
-# install Python dependencies
-RUN pip install -r requirements.txt
+# Install Python dependencies
+RUN pipenv install --system --deploy
+RUN pip install -e .
 
-# install/create static files
 RUN mkdir -p $INVENIO_INSTANCE_PATH
-RUN invenio npm && \
-    cd $INVENIO_INSTANCE_PATH/static && \
-    npm install && \
-    invenio collect -v && \
-    invenio assets build
 
-# set folder permissions
-RUN chgrp -R 0 $INVENIO_INSTANCE_PATH && \
-    chmod -R g=u $INVENIO_INSTANCE_PATH
-
-RUN useradd invenio --uid 1000 --gid 0 && \
-    chown -R invenio:root $INVENIO_INSTANCE_PATH
+# Set folder permissions
+RUN chgrp -R 0 $INVENIO_INSTANCE_PATH && chmod -R g=u $INVENIO_INSTANCE_PATH
+RUN chown -R invenio:root $INVENIO_INSTANCE_PATH
 USER 1000
 
 CMD uwsgi --module ${UWSGI_WSGI_MODULE} --socket 0.0.0.0:${UWSGI_PORT} --master --processes ${UWSGI_PROCESSES} --threads ${UWSGI_THREADS} --stats /tmp/stats.socket
