@@ -73,7 +73,7 @@ else
     # oc tag -n zenodo-broker-dev
     #        zenodo-broker:1.2.0 zenodo-broker:latest \
     #        <token> --server=https://openshift.cern.ch/
-    oc tag -n ${OPENSHIFT_PROJECT_NAME} \
+    oc tag -n zenodo-broker-tags \
            ${APPLICATION_IMAGE_NAME}:${VERSION} ${APPLICATION_IMAGE_NAME}:$ENVIRONMENT \
            $openshift_token_arg $openshift_server_arg
     # Re-deploy all DeploymentConfigs using the updated image
