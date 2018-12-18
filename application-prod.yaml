@@ -209,9 +209,10 @@
                       key: ELASTICSEARCH_PASSWORD
               readinessProbe:
                 exec:
-                  command: [
-                    "celery", "inspect", "ping", "-A", "${WORKER_APP}"
-                  ]
+                  command:
+                    - sh
+                    - -c
+                    - "celery inspect ping -d celery@$(hostname) -A ${WORKER_APP}"
                 initialDelaySeconds: 15
                 timeoutSeconds: 1
         triggers:
