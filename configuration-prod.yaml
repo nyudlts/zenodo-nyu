@@ -58,7 +58,7 @@
         INVENIO_CELERY_RESULT_BACKEND: 'redis://cache:6379/2'
         # Elasticsearch
         ELASTICSEARCH_HOST: zenodo-broker-search.cern.ch
-        ELASTICSEARCH_USER: broker
+        ELASTICSEARCH_USER: zenodo
         ELASTICSEARCH_PORT: '443'
         ELASTICSEARCH_USE_SSL: 'true'
         ELASTICSEARCH_VERIFY_CERTS: 'false'
