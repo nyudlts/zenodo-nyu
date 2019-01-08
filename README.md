@@ -217,6 +217,15 @@ $ oc create secret generic \
   elasticsearch-password
 ```
 
+Sentry DSN for logging:
+
+```console
+$ SENTRY_DSN="sync+https://user:pass@foobar-sentry.web.cern.ch/4"
+$ oc create secret generic \
+  --from-literal="SENTRY_DSN=$SENTRY_DSN" \
+  sentry-dsn
+```
+
 ##### 2. Create and start Invenio services
 
 ```console

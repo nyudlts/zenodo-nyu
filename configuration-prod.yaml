@@ -46,6 +46,33 @@
       apiVersion: v1
       kind: ConfigMap
       metadata:
+        name: invenio-instance-folder-config
+      data:
+        invenio.cfg: |
+          ASCLEPIAS_HARVESTER_EVENT_HARVESTERS = {
+              'crossref': (
+                  'asclepias_broker.harvester.crossref.CrossrefHarvester',
+                  {
+                      'id': 'zenodo-doi-references',
+                      'params': {
+                          'obj-id.prefix': '10.5281',
+                          'source': 'crossref',
+                          'relation-type': 'references',
+                      },
+                  },
+              ),
+          }
+
+          SENTRY_CONFIG = {'environment': 'production'}
+          try:
+              from raven import fetch_git_sha
+              SENTRY_CONFIG['release'] = fetch_git_sha('/opt/invenio/src')
+          except Exception:
+              pass
+    -
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
         name: invenio-config
       data:
         # Redis
@@ -62,3 +89,5 @@
         ELASTICSEARCH_PORT: '443'
         ELASTICSEARCH_USE_SSL: 'true'
         ELASTICSEARCH_VERIFY_CERTS: 'false'
+        # Application
+        INVENIO_ASCLEPIAS_SEARCH_INDEXING_ENABLED: 'false'

@@ -73,6 +73,9 @@
         - name: management
           port: 5672
           protocol: TCP
+        - name: http-management
+          port: 15672
+          protocol: TCP
         selector:
           app: mq
     -

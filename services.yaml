@@ -93,6 +93,7 @@
               ports:
               - containerPort: 4369
               - containerPort: 5672
+              - containerPort: 15672
               env:
               - name: TZ
                 value: "Europe/Zurich"

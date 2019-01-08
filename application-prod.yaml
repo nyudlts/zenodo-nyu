@@ -146,6 +146,16 @@
                     secretKeyRef:
                       name: elasticsearch-password
                       key: ELASTICSEARCH_PASSWORD
+                - name: INVENIO_SENTRY_DSN
+                  valueFrom:
+                    secretKeyRef:
+                      name: sentry-dsn
+                      key: SENTRY_DSN
+                - name: INVENIO_ASCLEPIAS_HARVESTER_ADS_API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: ads-api-token
+                      key: ASCLEPIAS_HARVESTER_ADS_API_TOKEN
               readinessProbe:
                 exec:
                   command:
@@ -154,6 +164,14 @@
                     - "uwsgi_curl $(hostname):5000 /ping"
                 initialDelaySeconds: 15
                 timeoutSeconds: 1
+              volumeMounts:
+                - name: invenio-instance-folder-config
+                  mountPath: /opt/invenio/var/instance/invenio.cfg
+                  subPath: invenio.cfg
+            volumes:
+            - name: invenio-instance-folder-config
+              configMap:
+                name: invenio-instance-folder-config
         triggers:
           - type: ImageChange
             imageChangeParams:
@@ -207,6 +225,16 @@
                     secretKeyRef:
                       name: elasticsearch-password
                       key: ELASTICSEARCH_PASSWORD
+                - name: INVENIO_SENTRY_DSN
+                  valueFrom:
+                    secretKeyRef:
+                      name: sentry-dsn
+                      key: SENTRY_DSN
+                - name: INVENIO_ASCLEPIAS_HARVESTER_ADS_API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: ads-api-token
+                      key: ASCLEPIAS_HARVESTER_ADS_API_TOKEN
               readinessProbe:
                 exec:
                   command:
@@ -215,6 +243,14 @@
                     - "celery inspect ping -d celery@$(hostname) -A ${WORKER_APP}"
                 initialDelaySeconds: 15
                 timeoutSeconds: 1
+              volumeMounts:
+                - name: invenio-instance-folder-config
+                  mountPath: /opt/invenio/var/instance/invenio.cfg
+                  subPath: invenio.cfg
+            volumes:
+            - name: invenio-instance-folder-config
+              configMap:
+                name: invenio-instance-folder-config
         triggers:
           - type: ImageChange
             imageChangeParams:

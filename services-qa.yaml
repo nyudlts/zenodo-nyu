@@ -73,6 +73,9 @@
         - name: management
           port: 5672
           protocol: TCP
+        - name: http-management
+          port: 15672
+          protocol: TCP
         selector:
           app: mq
     -
@@ -93,6 +96,7 @@
               ports:
               - containerPort: 4369
               - containerPort: 5672
+              - containerPort: 15672
               env:
               - name: TZ
                 value: "Europe/Zurich"
